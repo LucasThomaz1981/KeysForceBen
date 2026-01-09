@@ -1,0 +1,61 @@
+name: Bitcoin Brute Force Offline
+
+on:
+  workflow_dispatch: # Permite rodar manualmente
+  schedule:
+    - cron: '0 */6 * * *' # Roda a cada 6 horas
+
+jobs:
+  brute_force:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Download Address List and Create Bloom Filter
+        run: |
+          # Exemplo de download de lista (substitua pela URL real se necessário)
+          # curl -L https://example.com/addresses.txt -o addresses.txt
+          # python bloom_manager.py # Script para gerar o .bloom se não estiver no repo
+          
+          # Para fins de demonstração, assumimos que o addresses.bloom já existe ou é pequeno
+          if [ ! -f addresses.bloom ]; then
+            echo "Aviso: addresses.bloom não encontrado. Criando um vazio para teste."
+            python -c "from pybloom_live import BloomFilter; bf = BloomFilter(1000, 0.001); f = open('addresses.bloom', 'wb'); bf.tofile(f); f.close()"
+          fi
+
+      - name: Run Brute Force Engine
+        timeout-minutes: 300 # Limite de tempo do GitHub Actions (máx 360)
+        env:
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+        run: |
+          # Rodar o motor por um tempo determinado ou até encontrar algo
+          # Usamos um timeout no comando para não travar o workflow
+          timeout 290m python offline_brute_force.py || echo "Tempo esgotado ou interrompido."
+
+      - name: Verify Found Keys
+        if: always()
+        env:
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+        run: |
+          if [ -f found.txt ]; then
+            python -c "from balance_checker import verify_found_keys; verify_found_keys('found.txt', 'verified.txt')"
+          fi
+
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: brute-force-results
+          path: |
+            found.txt
+            verified.txt
