@@ -31,6 +31,16 @@ def load_bloom_filter(bloom_file):
     return None
 
 if __name__ == "__main__":
-    # Exemplo de uso:
-    # create_bloom_filter("addresses.txt", "addresses.bloom")
-    pass
+    import sys
+    
+    address_file = "addresses.txt"
+    bloom_file = "addresses.bloom"
+    
+    # Ajuste a capacidade conforme o tamanho da sua lista de endereços
+    # Para todos os endereços com saldo, você precisará de ~50-100 milhões
+    capacity = 1000000 
+    error_rate = 0.0001
+    
+    print(f"Iniciando criação do Bloom Filter a partir de {address_file}...")
+    create_bloom_filter(address_file, bloom_file, capacity, error_rate)
+    print("Processo concluído.")
