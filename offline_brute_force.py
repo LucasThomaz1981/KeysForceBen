@@ -78,9 +78,9 @@ def generate_worker(bloom_file, found_file):
                 f.write(f"Private Key: {private_key} | Address: {address} | Time: {time.ctime()}\n")
         
         count += 1
-        if count % 1000 == 0:
+        if count % 100000 == 0: # Aumentado para 100k para não poluir demais os logs
             elapsed = time.time() - start_time
-            # print(f"Worker {os.getpid()}: {count} chaves geradas. Velocidade: {count/elapsed:.2f} chaves/s")
+            print(f"Worker {os.getpid()}: {count} chaves geradas. Velocidade: {count/elapsed:.2f} chaves/s")
 
 if __name__ == "__main__":
     bloom_file = "addresses.bloom"
